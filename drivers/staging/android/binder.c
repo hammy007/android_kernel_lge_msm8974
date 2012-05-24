@@ -2880,9 +2880,7 @@ err:
 	binder_unlock(__func__);
 	wait_event_interruptible(binder_user_error_wait, binder_stop_on_user_error < 2);
 	if (ret && ret != -ERESTARTSYS)
-		binder_debug(BINDER_DEBUG_TOP_ERRORS,
-			     "binder: %d:%d ioctl %x %lx returned %d\n",
-			     proc->pid, current->pid, cmd, arg, ret);
+		printk(KERN_INFO "binder: %d:%d ioctl %x %lx returned %d\n", proc->pid, current->pid, cmd, arg, ret);
 err_unlocked:
 	trace_binder_ioctl_done(ret);
 	return ret;
@@ -3659,17 +3657,9 @@ static int binder_proc_show(struct seq_file *m, void *unused)
 
 	if (do_lock)
 		binder_lock(__func__);
+	seq_puts(m, "binder proc state:\n");
+	print_binder_proc(m, proc, 1);
 
-	hlist_for_each_entry(itr, pos, &binder_procs, proc_node) {
-		if (itr == proc) {
-			valid_proc = true;
-			break;
-		}
-	}
-	if (valid_proc) {
-		seq_puts(m, "binder proc state:\n");
-		print_binder_proc(m, proc, 1);
-	}
 	if (do_lock)
 		binder_unlock(__func__);
 	return 0;
