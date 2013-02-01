@@ -6691,13 +6691,8 @@ SYSCALL_DEFINE5(perf_event_open,
 	if (move_group) {
 		gctx = group_leader->ctx;
 
-		/*
-		 * See perf_event_ctx_lock() for comments on the details
-		 * of swizzling perf_event::ctx.
-		 */
-		mutex_lock_double(&gctx->mutex, &ctx->mutex);
-
-		perf_remove_from_context(group_leader, false);
+		mutex_lock(&gctx->mutex);
+		perf_remove_from_context(group_leader);
 
 		/*
 		 * Removing from the context ends up with disabled
@@ -6707,7 +6702,7 @@ SYSCALL_DEFINE5(perf_event_open,
 		perf_event__state_init(group_leader);
 		list_for_each_entry(sibling, &group_leader->sibling_list,
 				    group_entry) {
-			perf_remove_from_context(sibling, false);
+			perf_remove_from_context(sibling);
 			perf_event__state_init(sibling);
 			put_ctx(gctx);
 		}
