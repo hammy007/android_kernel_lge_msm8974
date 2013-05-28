@@ -4396,7 +4396,7 @@ static inline int l2cap_config_req(struct l2cap_conn *conn, struct l2cap_cmd_hdr
 	/* Reject if config buffer is too small. */
 
 	len = cmd_len - sizeof(*req);
-	if (len < 0 || l2cap_pi(sk)->conf_len + len > sizeof(l2cap_pi(sk)->conf_req)) {
+	if (l2cap_pi(sk)->conf_len + len > sizeof(l2cap_pi(sk)->conf_req)) {
 			l2cap_send_cmd(conn, cmd->ident, L2CAP_CONF_RSP,
 				l2cap_build_conf_rsp(sk, rspbuf,
 					L2CAP_CONF_REJECT, flags), rspbuf);
@@ -4758,7 +4758,7 @@ static inline int l2cap_information_rsp(struct l2cap_conn *conn,
 	struct l2cap_info_rsp *rsp = (struct l2cap_info_rsp *) data;
 	u16 type, result;
 
-	if (cmd_len < sizeof(*rsp))
+	if (cmd_len != sizeof(*rsp))
 		return -EPROTO;
 
 	type   = __le16_to_cpu(rsp->type);
