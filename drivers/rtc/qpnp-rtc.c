@@ -429,15 +429,6 @@ qpnp_rtc_alarm_irq_enable(struct device *dev, unsigned int enabled)
 	struct qpnp_rtc *rtc_dd = dev_get_drvdata(dev);
 	u8 ctrl_reg;
 	u8 value[4] = {0};
-#ifdef CONFIG_LGE_PM_RTC_PWROFF_ALARM
-	pr_info("[%s]: enabled : %d,poweron_alarm : %d\n",__func__, enabled,poweron_alarm);
-	if (poweron_alarm == true) {
-		enabled = true;
-	}
-	else if (poweron_alarm == false) {
-		enabled = false;
-	}
-#endif
 
 	spin_lock_irqsave(&rtc_dd->alarm_ctrl_lock, irq_flags);
 	ctrl_reg = rtc_dd->alarm_ctrl_reg1;
