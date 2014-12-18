@@ -31,7 +31,7 @@
 #include "udf_i.h"
 
 static int udf_pc_to_char(struct super_block *sb, unsigned char *from,
-			  int fromlen, unsigned char *to, int tolen)
+			   int fromlen, unsigned char *to, int tolen)
 {
 	struct pathComponent *pc;
 	int elen = 0;
@@ -77,9 +77,6 @@ static int udf_pc_to_char(struct super_block *sb, unsigned char *from,
 			/* that would be . - just ignore */
 			break;
 		case 5:
-			elen += pc->lengthComponentIdent;
-			if (elen > fromlen)
-				return -EIO;
 			comp_len = udf_get_filename(sb, pc->componentIdent,
 						    pc->lengthComponentIdent,
 						    p, tolen);
