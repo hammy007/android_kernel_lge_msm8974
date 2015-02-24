@@ -432,8 +432,53 @@ static void cpufreq_impulse_timer(unsigned long data)
 	pcpu->last_evaluated_jiffy = get_jiffies_64();
 	spin_unlock_irqrestore(&pcpu->load_lock, flags);
 
-	if (WARN_ON_ONCE(!delta_time))
-		goto rearm;
+	max_cpu = cpumask_first(ppol->policy->cpus);
+	for_each_cpu(i, ppol->policy->cpus) {
+		pcpu = &per_cpu(cpuinfo, i);
+		now = update_load(i);
+		delta_time = (unsigned int)
+			(now - pcpu->cputime_speedadj_timestamp);
+		if (WARN_ON_ONCE(!delta_time))
+			continue;
+		cputime_speedadj = pcpu->cputime_speedadj;
+		do_div(cputime_speedadj, delta_time);
+		tmploadadjfreq = (unsigned int)cputime_speedadj * 100;
+		pcpu->loadadjfreq = tmploadadjfreq;
+
+		if (tmploadadjfreq > loadadjfreq) {
+			loadadjfreq = tmploadadjfreq;
+			max_cpu = i;
+		}
+	}
+	spin_unlock_irqrestore(&ppol->load_lock, flags);
+
+	/*
+	 * Send govinfo notification.
+	 * Govinfo notification could potentially wake up another thread
+	 * managed by its clients. Thread wakeups might trigger a load
+	 * change callback that executes this function again. Therefore
+	 * no spinlock could be held when sending the notification.
+	 */
+	for_each_cpu(i, ppol->policy->cpus) {
+		pcpu = &per_cpu(cpuinfo, i);
+		govinfo.cpu = i;
+		govinfo.load = pcpu->loadadjfreq / ppol->policy->max;
+		govinfo.sampling_rate_us = tunables->timer_rate;
+		atomic_notifier_call_chain(&cpufreq_govinfo_notifier_list,
+					   CPUFREQ_LOAD_CHANGE, &govinfo);
+	}
+
+	spin_lock_irqsave(&ppol->target_freq_lock, flags);
+	cpu_load = loadadjfreq / ppol->policy->cur;
+	cpufreq_notify_utilization(ppol->policy, cpu_load);
+	tunables->boosted = cpu_load >= tunables->go_hispeed_load;
+#ifdef CONFIG_MSM_HOTPLUG
+	tunables->boosted = fast_lane_mode || tunables->boosted;
+#endif
+#ifdef CONFIG_STATE_NOTIFIER
+	tunables->boosted = tunables->boosted && !state_suspended;
+#endif
+	this_hispeed_freq = max(tunables->hispeed_freq, ppol->policy->min);
 
 	spin_lock_irqsave(&pcpu->target_freq_lock, flags);
 	do_div(cputime_speedadj, delta_time);
