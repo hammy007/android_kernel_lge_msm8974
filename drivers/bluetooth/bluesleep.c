@@ -58,6 +58,9 @@
 #include <linux/gpio.h>
 #include <linux/of_gpio.h>
 
+static unsigned int bt_debug = 0;
+module_param_named(bt_debug_mask, bt_debug, uint, 0644);
+
 #define BT_PORT_NUM    99
 
 //#define BT_SLEEP_DBG
