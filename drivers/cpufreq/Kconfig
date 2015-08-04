@@ -154,6 +154,12 @@ config CPU_FREQ_DEFAULT_GOV_INTERACTIVEX2
 	help
 	  Use the CPUFreq governor 'interactivex2' as default
 
+config CPU_FREQ_DEFAULT_GOV_SMARTMAX_EPS
+        bool "smartmax_eps"
+        select CPU_FREQ_GOV_SMARTMAX_EPS
+        help
+          Use the CPUFreq governor 'smartmax eps' as default
+
 config CPU_FREQ_DEFAULT_GOV_IMPULSE
 	bool "impulse"
 	select CPU_FREQ_GOV_IMPULSE
@@ -321,6 +327,12 @@ config CPU_FREQ_GOV_INTELLIACTIVE
 config CPU_FREQ_GOV_INTERACTIVEX2
 	tristate "'interactivex2' cpufreq governor"
 	depends on CPU_FREQ
+
+config CPU_FREQ_GOV_SMARTMAX_EPS
+        tristate "'smartmax EPS' cpufreq policy governor"
+        select CPU_FREQ_TABLE
+        help
+          'smartmax EPS' is the extreme powersaving version of smartmax
 
 config CPU_FREQ_GOV_IMPULSE
 	tristate "'impulse' cpufreq policy governor"
