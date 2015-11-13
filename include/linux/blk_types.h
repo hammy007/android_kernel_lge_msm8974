@@ -157,7 +157,9 @@ enum rq_flag_bits {
 	__REQ_ELVPRIV,		/* elevator private data attached */
 	__REQ_FAILED,		/* set if the request failed */
 	__REQ_QUIET,		/* don't worry about errors */
-	__REQ_PREEMPT,		/* set for "ide_preempt" requests */
+	__REQ_PREEMPT,		/* set for "ide_preempt" requests and also
+				   for requests for which the SCSI "quiesce"
+				   state must be ignored. */
 	__REQ_ALLOCED,		/* request came from our alloc pool */
 	__REQ_COPY_USER,	/* contains copies of user pages */
 	__REQ_FLUSH_SEQ,	/* request for flush sequence */
@@ -166,6 +168,7 @@ enum rq_flag_bits {
 	__REQ_SANITIZE,		/* sanitize */
 	__REQ_URGENT,		/* urgent request */
 	__REQ_PM,		/* runtime pm request */
+	__REQ_KERNEL, 		/* direct IO to kernel pages */
 	__REQ_NR_BITS,		/* stops here */
 };
 
@@ -190,6 +193,9 @@ enum rq_flag_bits {
 #define REQ_CLONE_MASK		REQ_COMMON_MASK
 
 #define MMC_REQ_NOREINSERT_MASK (REQ_URGENT | REQ_FUA | REQ_FLUSH)
+#if 0
+#define BIO_NO_ADVANCE_ITER_MASK	(REQ_DISCARD|REQ_WRITE_SAME) /* disabled by dorimanx */
+#endif
 
 #define REQ_RAHEAD		(1 << __REQ_RAHEAD)
 #define REQ_THROTTLED		(1 << __REQ_THROTTLED)
@@ -213,5 +219,6 @@ enum rq_flag_bits {
 #define REQ_MIXED_MERGE		(1 << __REQ_MIXED_MERGE)
 #define REQ_SECURE		(1 << __REQ_SECURE)
 #define REQ_PM                 (1 << __REQ_PM)
+#define REQ_KERNEL		(1 << __REQ_KERNEL)
 
 #endif /* __LINUX_BLK_TYPES_H */

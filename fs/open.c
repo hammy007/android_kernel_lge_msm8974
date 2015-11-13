@@ -71,33 +71,22 @@ int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
 	return ret;
 }
 
-static long do_sys_truncate(const char __user *pathname, loff_t length)
+long vfs_truncate(struct path *path, loff_t length)
 {
-	struct path path;
 	struct inode *inode;
-	int error;
+	long error;
 
-	error = -EINVAL;
-	if (length < 0)	/* sorry, but loff_t says... */
-		goto out;
-
-	error = user_path(pathname, &path);
-	if (error)
-		goto out;
-	inode = path.dentry->d_inode;
+	inode = path->dentry->d_inode;
 
 	/* For directories it's -EISDIR, for other non-regulars - -EINVAL */
-	error = -EISDIR;
 	if (S_ISDIR(inode->i_mode))
-		goto dput_and_out;
-
-	error = -EINVAL;
+		return -EISDIR;
 	if (!S_ISREG(inode->i_mode))
-		goto dput_and_out;
+		return -EINVAL;
 
-	error = mnt_want_write(path.mnt);
+	error = mnt_want_write(path->mnt);
 	if (error)
-		goto dput_and_out;
+		goto out;
 
 	error = inode_permission(inode, MAY_WRITE);
 	if (error)
@@ -121,17 +110,32 @@ static long do_sys_truncate(const char __user *pathname, loff_t length)
 
 	error = locks_verify_truncate(inode, NULL, length);
 	if (!error)
-		error = security_path_truncate(&path);
+		error = security_path_truncate(path);
 	if (!error)
-		error = do_truncate(path.dentry, length, 0, NULL);
+		error = do_truncate(path->dentry, length, 0, NULL);
 
 put_write_and_out:
 	put_write_access(inode);
 mnt_drop_write_and_out:
-	mnt_drop_write(path.mnt);
-dput_and_out:
-	path_put(&path);
+	mnt_drop_write(path->mnt);
 out:
+	return error;
+}
+EXPORT_SYMBOL_GPL(vfs_truncate);
+
+static long do_sys_truncate(const char __user *pathname, loff_t length)
+{
+	struct path path;
+	int error;
+
+	if (length < 0)	/* sorry, but loff_t says... */
+		return -EINVAL;
+
+	error = user_path(pathname, &path);
+	if (!error) {
+		error = vfs_truncate(&path, length);
+		path_put(&path);
+	}
 	return error;
 }
 
@@ -174,11 +178,13 @@ static long do_sys_ftruncate(unsigned int fd, loff_t length, int small)
 	if (IS_APPEND(inode))
 		goto out_putf;
 
+	sb_start_write(inode->i_sb);
 	error = locks_verify_truncate(inode, file, length);
 	if (!error)
 		error = security_path_truncate(&file->f_path);
 	if (!error)
 		error = do_truncate(dentry, length, ATTR_MTIME|ATTR_CTIME, file);
+	sb_end_write(inode->i_sb);
 out_putf:
 	fput(file);
 out:
@@ -276,7 +282,10 @@ int do_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
 	if (!file->f_op->fallocate)
 		return -EOPNOTSUPP;
 
-	return file->f_op->fallocate(file, mode, offset, len);
+	sb_start_write(inode->i_sb);
+	ret = file->f_op->fallocate(file, mode, offset, len);
+	sb_end_write(inode->i_sb);
+	return ret;
 }
 
 SYSCALL_DEFINE(fallocate)(int fd, int mode, loff_t offset, loff_t len)
