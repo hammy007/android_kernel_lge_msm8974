@@ -2354,17 +2354,16 @@ static void dwc3_stop_active_transfer(struct dwc3 *dwc, u32 epnum)
 
 	dep = dwc->eps[epnum];
 
-	WARN_ON(!dep->res_trans_idx);
-	if (dep->res_trans_idx) {
+	if (!dep->resource_index)
+		return;
 		cmd = DWC3_DEPCMD_ENDTRANSFER;
 		cmd |= DWC3_DEPCMD_HIPRI_FORCERM | DWC3_DEPCMD_CMDIOC;
-		cmd |= DWC3_DEPCMD_PARAM(dep->res_trans_idx);
+	        cmd |= DWC3_DEPCMD_PARAM(dep->resource_index);
 		memset(&params, 0, sizeof(params));
 		ret = dwc3_send_gadget_ep_cmd(dwc, dep->number, cmd, &params);
 		WARN_ON_ONCE(ret);
-		dep->res_trans_idx = 0;
+	        dep->resource_index = 0;
 		dep->flags &= ~DWC3_EP_BUSY;
-	}
 }
 
 static void dwc3_stop_active_transfers(struct dwc3 *dwc)
