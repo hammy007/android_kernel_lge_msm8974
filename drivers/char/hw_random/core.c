@@ -55,7 +55,14 @@ static struct task_struct *hwrng_fill;
 static LIST_HEAD(rng_list);
 static DEFINE_MUTEX(rng_mutex);
 static int data_avail;
-static u8 *rng_buffer;
+static u8 *rng_buffer, *rng_fillbuf;
+static unsigned short current_quality = 700; /* an arbitrary 70% */
+
+module_param(current_quality, ushort, 0644);
+MODULE_PARM_DESC(current_quality,
+		 "current hwrng entropy estimation per mill");
+
+static void start_khwrngd(void);
 
 static size_t rng_buffer_size(void)
 {
@@ -359,6 +366,13 @@ int hwrng_register(struct hwrng *rng)
 		rng_buffer = kmalloc(rng_buffer_size(), GFP_KERNEL);
 		if (!rng_buffer)
 			goto out_unlock;
+	}
+	if (!rng_fillbuf) {
+		rng_fillbuf = kmalloc(rng_buffer_size(), GFP_KERNEL);
+		if (!rng_fillbuf) {
+			kfree(rng_buffer);
+			goto out_unlock;
+		}
 	}
 
 	/* Must not register two RNGs with the same name. */
