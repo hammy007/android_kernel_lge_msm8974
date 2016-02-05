@@ -5720,7 +5720,7 @@ static int l2cap_sig_amp(struct l2cap_conn *conn, struct l2cap_cmd_hdr *cmd,
 {
 	struct l2cap_amp_signal_work *amp_work;
 
-	if (cmd_len < sizeof(*rsp))
+	if (cmd_len < sizeof(struct l2cap_conn_req))
 		return -EPROTO;
 
 	amp_work = kzalloc(sizeof(*amp_work), GFP_ATOMIC);
