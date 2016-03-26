@@ -1,6 +1,6 @@
 #
 # Automatically generated file; DO NOT EDIT.
-# Linux/arm 3.4.110 Kernel Configuration
+# Linux/arm 3.4.111 Kernel Configuration
 #
 CONFIG_ARM=y
 CONFIG_ARM_HAS_SG_CHAIN=y
@@ -3348,8 +3348,7 @@ CONFIG_STAGING=y
 # CONFIG_TRANZPORT is not set
 # CONFIG_LINE6_USB is not set
 # CONFIG_IIO is not set
-# CONFIG_ZRAM=y
-# CONFIG_ZRAM_DEBUG is not set
+# CONFIG_ZRAM is not set
 CONFIG_ZSMALLOC=y
 # CONFIG_FB_SM7XX is not set
 # CONFIG_BCM_WIMAX is not set
