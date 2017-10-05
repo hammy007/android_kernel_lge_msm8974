@@ -134,11 +134,6 @@ from_old_alarm_set:
 			timespec_to_ktime(new_alarm_time),
 			timespec_to_ktime(new_alarm_time));
 		spin_unlock_irqrestore(&alarm_slock, flags);
-		if ((alarm_type == ANDROID_ALARM_RTC_POWEROFF_WAKEUP) &&
-				(ANDROID_ALARM_BASE_CMD(cmd) ==
-				 ANDROID_ALARM_SET(0)))
-			set_power_on_alarm(new_alarm_time.tv_sec, 1);
-		mutex_unlock(&alarm_mutex);
 		if (ANDROID_ALARM_BASE_CMD(cmd) != ANDROID_ALARM_SET_AND_WAIT(0)
 		    && cmd != ANDROID_ALARM_SET_AND_WAIT_OLD)
 			break;
