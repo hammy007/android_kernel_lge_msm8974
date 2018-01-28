@@ -387,6 +387,11 @@ KBUILD_CFLAGS   := -Wall -Wundef -Wstrict-prototypes -Wno-trigraphs \
            -Wno-tautological-compare \
 		   -fno-delete-null-pointer-checks \
 		   -std=gnu89 \
+		   -Wno-format-truncation \
+		   -Wno-int-in-bool-context \
+		   -Wno-switch-unreachable \
+		   -Wno-duplicate-decl-specifier \
+		   -Wno-bool-operation \
 		   $(KERNEL_FLAGS)
 KBUILD_AFLAGS_KERNEL :=
 KBUILD_CFLAGS_KERNEL :=
